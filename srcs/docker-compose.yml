@@ -1,0 +1,179 @@
+# "version": Specifies the version of the Docker Compose file format.
+# Version '3' is the standard for modern Docker installations.
+version: '3'
+
+# "services": This section defines all the containers (programs) we want to run.
+services:
+
+  # ----------------------------------------------------------------
+  # SERVICE 1: NGINX (The Web Server / Entry Point)
+  # ----------------------------------------------------------------
+  nginx:
+    # "build": We are building a custom image for this service.
+    build:
+      # "context": The folder where Docker looks for files (relative to this file).
+      # It will go into ./requirements/nginx to find the Dockerfile.
+      context: ./requirements/nginx
+      # "dockerfile": The specific name of the file to use for building the image.
+      dockerfile: Dockerfile
+    
+    # "container_name": Forces the container to be named "nginx".
+    # Without this, Docker would name it something like "inception_nginx_1".
+    container_name: nginx
+    
+    # "ports": Maps ports from your host (laptop) to the container.
+    ports:
+      # "443:443": Maps port 443 on your laptop -> port 443 inside the container.
+      # This allows you to access the site via https://localhost.
+      - "443:443"
+    
+    # "volumes": Defines shared storage between your laptop and the container.
+    volumes:
+      # Maps the folder on your hard drive (/home/abdelhamid/data/wordpress) 
+      # to the folder inside the container (/var/www/wordpress).
+      # This enables NGINX to read the static files (images, css) that WordPress creates.
+      - /home/abdelhamid/data/wordpress:/var/www/wordpress
+    
+    # "networks": Connects this container to our private network.
+    networks:
+      # It joins the "inception" network defined at the bottom.
+      - inception
+    
+    # "depends_on": Control startup order.
+    depends_on:
+      # Docker will start the "wordpress" container BEFORE starting nginx.
+      # NGINX needs WordPress to be alive to forward PHP requests.
+      - wordpress
+    
+    # "restart": Defines what happens if the container crashes.
+    # "always": Docker will automatically restart it indefinitely if it stops.
+    restart: always
+
+  # ----------------------------------------------------------------
+  # SERVICE 2: WordPress (The Application Logic)
+  # ----------------------------------------------------------------
+  wordpress:
+    # "build": Build a custom image for WordPress.
+    build:
+      # Look in the ./requirements/wordpress folder.
+      context: ./requirements/wordpress
+      # Use the Dockerfile found there.
+      dockerfile: Dockerfile
+    
+    # Name the container "wordpress".
+    container_name: wordpress
+    
+    # "volumes": IMPORTANT. We map the EXACT SAME folder as NGINX.
+    volumes:
+      # When WordPress installs files into /var/www/wordpress, they appear
+      # on your laptop, and NGINX can see them too.
+      - /home/abdelhamid/data/wordpress:/var/www/wordpress
+    
+    # Join the same network so it can talk to NGINX and MariaDB.
+    networks:
+      - inception
+    
+    # Restart automatically if it crashes.
+    restart: always
+    
+    # "environment": Passes variables into the container (used by setup_wp.sh).
+    environment:
+      SQL_DATABASE: ${SQL_DATABASE}
+      SQL_USER: ${SQL_USER}
+      SQL_PASSWORD: ${SQL_PASSWORD}
+      DOMAIN_NAME: ${DOMAIN_NAME}
+      SITE_TITLE: ${SITE_TITLE}
+      ADMIN_USER: ${WP_ADMIN_USER}
+      ADMIN_PASSWORD: ${WP_ADMIN_PASSWORD}
+      ADMIN_EMAIL: ${WP_ADMIN_EMAIL}
+      USER1_LOGIN: ${WP_USER}
+      USER1_PASS: ${WP_USER_PASSWORD}
+      USER1_EMAIL: ${WP_USER_EMAIL}
+      SQL_HOST: mariadb
+  # ----------------------------------------------------------------
+  # SERVICE 3: MariaDB (The Database)
+  # ----------------------------------------------------------------
+  mariadb:
+    # Build the custom database image.
+    build:
+      # Look in ./requirements/mariadb.
+      context: ./requirements/mariadb
+      dockerfile: Dockerfile
+    
+    # Name the container "mariadb".
+    container_name: mariadb
+    
+    # "volumes": Persist the database data.
+    volumes:
+      # Maps your laptop folder (/home/abdelhamid/data/mariadb)
+      # to the standard MySQL data folder (/var/lib/mysql).
+      # If you delete the container, your users/posts stay safe here.
+      - /home/abdelhamid/data/mariadb:/var/lib/mysql
+    
+    # Join the network to talk to WordPress.
+    networks:
+      - inception
+    
+    # Restart automatically if it crashes.
+    restart: always
+    
+    # "environment": Variables needed to initialize the database (used by mariadb.sh).
+    environment:
+      - SQL_DATABASE=${SQL_DATABASE} 
+      - SQL_USER=${SQL_USER}
+      - SQL_PASSWORD=${SQL_PASSWORD}
+      - SQL_ROOT_PASSWORD=${SQL_ROOT_PASSWORD}
+  redis:
+    build: requirements/bonus/redis
+    image: redis
+    container_name: redis
+    ports:
+      - "6379:6379"
+    networks:
+      - inception
+    restart: always
+  adminer:
+    build: requirements/bonus/adminer
+    image: adminer
+    container_name: adminer
+    # We map port 8080 on your laptop to port 8080 inside the container
+    ports:
+      - "8080:8080"
+    networks:
+      - inception
+    depends_on:
+      - mariadb
+    restart: always
+  website:
+    build: requirements/bonus/website
+    image: website
+    container_name: website
+    ports:
+      - "1337:1337"
+    networks:
+      - inception
+    restart: always
+  ftp:
+    build: requirements/bonus/ftp
+    image: ftp
+    container_name: ftp
+    ports:
+      - "21:21"           # The Command Door
+      - "21100-21110:21100-21110" # The Data Doors (Passive Mode)
+    volumes:
+      # MUST be the exact same volume as WordPress
+      - /home/abdelhamid/data/wordpress:/var/www/wordpress
+    networks:
+      - inception
+    env_file:
+      - .env
+    restart: always
+# ----------------------------------------------------------------
+# NETWORKS CONFIGURATION
+# ----------------------------------------------------------------
+networks:
+  # Define the network named "inception".
+  inception:
+    # "driver: bridge": Creates a private internal network on your machine.
+    # Containers can see each other, but the outside world cannot (except ports we opened).
+    driver: bridge
