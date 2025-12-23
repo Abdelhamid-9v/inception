@@ -8,13 +8,11 @@ RUN mkdir -p /var/run/mysqld \
     && chown -R mysql:mysql /var/run/mysqld \
     && chmod 777 /var/run/mysqld
 
-# Copy our custom config
 COPY conf/zz-mariadb.cnf /etc/mysql/mariadb.conf.d/zz-mariadb.cnf
 
 # Copy the startup script
 COPY tools/mariadb.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/mariadb.sh
 
-EXPOSE 3306
 
 ENTRYPOINT ["/usr/local/bin/mariadb.sh"]

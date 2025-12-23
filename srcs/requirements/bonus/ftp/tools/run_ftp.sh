@@ -14,7 +14,7 @@ if [ ! -f "/etc/vsftpd.userlist" ]; then
     echo "$FTP_USER:$FTP_PASSWORD" | chpasswd
 
     # Add the user to the allowed list
-    echo "$FTP_USER" | tee -a /etc/vsftpd.userlist
+    echo "$FTP_USER" >> /etc/vsftpd.userlist
 
     # Fix permissions so the user owns the folder
     chown -R $FTP_USER:$FTP_USER /var/www/wordpress
@@ -22,7 +22,7 @@ if [ ! -f "/etc/vsftpd.userlist" ]; then
 
     echo "FTP User '$FTP_USER' created!"
 fi
-
+mkdir -p /var/run/vsftpd/empty
 # 2. Start the FTP server in the foreground
 echo "Starting vsftpd..."
 /usr/sbin/vsftpd /etc/vsftpd.conf

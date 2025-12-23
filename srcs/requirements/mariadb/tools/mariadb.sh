@@ -31,14 +31,18 @@ echo "Configuring Database..."
 #GRANT ALL PRIVILEGES :Give this user full power(SELECT (read), INSERT (write), UPDATE (change), DELETE (remove), and even DROP (destroy) tables.)
 #The . separates the database name from the table name.
 #ALTER...: set a password to the existing root user
-mariadb <<EOF
+mariadb <<eof
 FLUSH PRIVILEGES;
+
 CREATE DATABASE IF NOT EXISTS \`${SQL_DATABASE}\`;
 CREATE USER IF NOT EXISTS \`${SQL_USER}\`@'%' IDENTIFIED BY '${SQL_PASSWORD}';
 GRANT ALL PRIVILEGES ON \`${SQL_DATABASE}\`.* TO \`${SQL_USER}\`@'%';
+CREATE USER IF NOT EXISTS \`${SQL_USER}\`@'localhost' IDENTIFIED BY '${SQL_PASSWORD}';
+GRANT ALL PRIVILEGES ON \`${SQL_DATABASE}\`.* TO \`${SQL_USER}\`@'localhost';
 ALTER USER 'root'@'localhost' IDENTIFIED BY '${SQL_ROOT_PASSWORD}';
+
 FLUSH PRIVILEGES;
-EOF
+eof
 
 echo "Configuration finished. Restarting in safe mode..."
 
@@ -55,3 +59,15 @@ mysqladmin -u root -p$SQL_ROOT_PASSWORD shutdown
 
 # 5. Start the final server (Foreground)
 exec mysqld_safe
+
+SHOW DATABASE:
+USE wordpress;
+SHOW TABLES;
+SELECT * FROM wp_users;
+exit
+
+SHOW DATABASES;
+USE wordpress;
+SHOW TABLES;
+SELECT * FROM wp_users;
+exit

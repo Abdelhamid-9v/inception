@@ -1,7 +1,7 @@
 #!/bin/bash
 
 cd /var/www/wordpress
-
+#-h :host
 echo "Waiting for MariaDB..."
 while ! mariadb -h mariadb -u$SQL_USER -p$SQL_PASSWORD $SQL_DATABASE &>/dev/null; do
     sleep 3
@@ -17,11 +17,14 @@ fi
 
 # Download WordPress Core if missing
 if [ ! -f index.php ]; then
+#install wordpress php files
     wp core download --allow-root
 fi
 
 # Create wp-config.php if missing
 if [ ! -f wp-config.php ]; then
+    #Before this command runs, your WordPress folder is full of generic PHP files,
+    #but it has no identity. It doesn't know who owns it or where to store data.
     wp config create \
         --dbname=$SQL_DATABASE \
         --dbuser=$SQL_USER \
@@ -33,6 +36,7 @@ fi
 # Check if WordPress is actually installed
 if ! wp core is-installed --allow-root; then
     # 1. Install WordPress
+    #Creates the WordPress tables in the database using the URL, title, and...
     wp core install \
         --url=$DOMAIN_NAME \
         --title="$SITE_TITLE" \

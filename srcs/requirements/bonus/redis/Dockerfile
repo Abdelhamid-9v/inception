@@ -9,7 +9,6 @@ RUN apt-get update && apt-get install -y redis-server && \
 # For simplicity, let's copy a custom config.
 COPY conf/redis.conf /etc/redis/redis.conf
 
-# Open the port
 EXPOSE 6379
 
 # Start Redis with our config

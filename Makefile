@@ -3,11 +3,10 @@ SRCS = ./srcs
 COMPOSE_FILE = $(SRCS)/docker-compose.yml
 
 # ⚠️ CHANGE THIS to your actual username if different!
-USER_NAME = abdelhamid
-DATA_PATH = /home/$(USER_NAME)/data
+DATA_PATH = /home/abel-had/data
 
 # Docker Compose Command (Use 'docker-compose' if 'docker compose' fails)
-DOCKER = docker compose -f $(COMPOSE_FILE)
+DOCKER = docker-compose --env-file $(SRCS)/.env -f $(COMPOSE_FILE)
 
 all: up
 
