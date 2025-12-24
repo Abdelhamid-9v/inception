@@ -36,7 +36,7 @@ This was a specific requirement. Data must be in my home folder, but Docker has 
 
 * **Location:**
     * DB: `/home/abel-had/data/mariadb`
-    * WP: `/home/abel-had/data/wordpress`
+    * WP: `/home//data/wordpress`
 
 * **How it works:**
     In `docker-compose.yml`, I used the `local` driver with `o: bind`. This tricks Docker into listing the volume in `docker volume ls` while actually storing the files where I want them.

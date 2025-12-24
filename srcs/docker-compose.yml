@@ -123,13 +123,13 @@ volumes:
     driver_opts:
       type: none
       o: bind
-      device: /home/abel-had/data/mariadb
+      device: /home/abdelhamid/data/mariadb
 
   wordpress:
     driver: local
     driver_opts:
       type: none
       o: bind
-      device: /home/abel-had/data/wordpress
+      device: /home/abdelhamid/data/wordpress
 
   portainer_data:

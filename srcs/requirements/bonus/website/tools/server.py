@@ -1,6 +1,5 @@
 import socket
 
-# 1. Define the HTML Content directly in the code
 html_content = """<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -178,27 +177,13 @@ html_content = """<!DOCTYPE html>
 </body>
 </html>"""
 
-# 2. Create the socket
 # AF_INET = IPv4, SOCK_STREAM = TCP
 server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
-# 3. Bind to Port 1337
-# 0.0.0.0 allows connections from outside the container
 server_socket.bind(('0.0.0.0', 1337))
-
-# 4. Listen
 server_socket.listen(5)
 print("Python Resume Server running on port 1337...")
-
-# 5. Main Loop
 while True:
-    # Accept connection
     client_socket, addr = server_socket.accept()
-    
-    # Construct the HTTP Response
-    # We must encode the string to bytes (UTF-8) to send it over the network
     response = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n" + html_content
-    
-    # Send and Close
     client_socket.send(response.encode('utf-8'))
     client_socket.close()
